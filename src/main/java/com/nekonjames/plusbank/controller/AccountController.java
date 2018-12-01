@@ -207,15 +207,19 @@ public class AccountController {
         return map;
     }
             
-    @DeleteMapping("/delete-account/{id}")
-    public ResponseEntity<?> deleteAccount(@PathVariable(value = "accountNumber") Long accountNumber) {   
+    @DeleteMapping("/delete-account/{accountNumber}")
+    public HashMap<String,Object> deleteAccount(@PathVariable(value = "accountNumber") Long accountNumber) { 
+        
+        HashMap<String,Object> map = new HashMap<>();
         
         Account customerAccount = accountRepository.findById(accountNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", accountNumber));
         
         accountRepository.delete(customerAccount);
+        map.put("code",ResponseSettings.APPROVED);
+        map.put("message","Account Successfully Deleted");
         
-        return ResponseEntity.ok().build();
+        return map;
     }
     
     /**
