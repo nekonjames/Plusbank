@@ -48,22 +48,22 @@ public class AccountController {
     @Autowired
     private TransactionRepository transactionRepository;
     
-    @GetMapping("/hello")
-    public HashMap<String,Object> hello() {
-        HashMap<String,Object> map = new HashMap<>();
-        
-        RestTemplate restTemplate = new RestTemplate();
-        String currency = restTemplate.getForObject("http://data.fixer.io/api/latest?access_key=f3f2d7a94aeaefc42e16a1d80f80668c&symbols=USD", String.class);
-            
-//        CurrencyPojo currency = restTemplate.getForObject("http://data.fixer.io/api/latest?access_key=f3f2d7a94aeaefc42e16a1d80f80668c&symbols=USD", CurrencyPojo.class);
-//        List<RatesPojo> rate= currency.getRates();
-        
-        map.put("code", ResponseSettings.APPROVED);
-        map.put("message", ResponseSettings.SUCCESS_MESSAGE);
-        map.put("currency", currency.substring(currency.lastIndexOf("USD")+5,currency.lastIndexOf("USD")+10));        
-        
-        return map;
-    }
+//    @GetMapping("/hello")
+//    public HashMap<String,Object> hello() {
+//        HashMap<String,Object> map = new HashMap<>();
+//        
+//        RestTemplate restTemplate = new RestTemplate();
+//        String currency = restTemplate.getForObject("http://data.fixer.io/api/latest?access_key=f3f2d7a94aeaefc42e16a1d80f80668c&symbols=USD", String.class);
+//            
+////        CurrencyPojo currency = restTemplate.getForObject("http://data.fixer.io/api/latest?access_key=f3f2d7a94aeaefc42e16a1d80f80668c&symbols=USD", CurrencyPojo.class);
+////        List<RatesPojo> rate= currency.getRates();
+//        
+//        map.put("code", ResponseSettings.APPROVED);
+//        map.put("message", ResponseSettings.SUCCESS_MESSAGE);
+//        map.put("currency", currency.substring(currency.lastIndexOf("USD")+5,currency.lastIndexOf("USD")+10));        
+//        
+//        return map;
+//    }
     
     @GetMapping("/all-account")
     public HashMap<String,Object> listAllAccounts() {

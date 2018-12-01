@@ -6,6 +6,7 @@
 package com.nekonjames.plusbank.repository;
 
 import com.nekonjames.plusbank.model.Transaction;
+import java.util.Date;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,10 +20,18 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     
-    @Query("FROM Transaction t where t.accountNumber = :accountNumber order by t.transactionDate DESC")
+    @Query("FROM Transaction t WHERE t.accountNumber = :accountNumber ORDER BY t.transactionDate DESC")
     List<Transaction> findAllByAccountNumber(@Param("accountNumber") Long accountNumber);
     
-    @Query("FROM Transaction t order by t.transactionDate DESC")
+    List<Transaction> findAllByTransactionDateBetween(Date startDate, Date endDate);
+    
+    @Query("FROM Transaction t ORDER BY t.transactionDate DESC")
     List<Transaction> loadAllTransactions();
+    
+    @Query("FROM Transaction t WHERE t.transactionDate >= :startDate AND t.transactionDate <= :endDate ORDER BY t.transactionDate DESC")
+    List<Transaction> loadAllTransactionByDate(@Param("startDate") Date startDate,@Param("endDate") Date endDate);
+    
+    @Query("FROM Transaction t WHERE t.accountNumber = :accountNumber AND t.transactionDate >= :startDate AND t.transactionDate <= :endDate ORDER BY t.transactionDate DESC")
+    List<Transaction> loadAccountTransactionByDate(@Param("accountNumber") Long accountNumber,@Param("startDate") Date startDate,@Param("endDate") Date endDate);
     
 }
