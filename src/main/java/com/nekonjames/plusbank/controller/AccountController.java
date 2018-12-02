@@ -49,8 +49,12 @@ public class AccountController {
     private TransactionRepository transactionRepository;
     
 
-    
-    @GetMapping("/all-account")
+    /**
+     * This method load all account in the system.
+     * 
+     * @return HashMap
+     */
+    @GetMapping("/all")
     public HashMap<String,Object> listAllAccounts() {
         List<Account> account = accountRepository.findAll();
         HashMap<String,Object> map = new HashMap<>();
@@ -61,6 +65,12 @@ public class AccountController {
         return map;
     }
     
+    /**
+     * This method create new account in the system.
+     * 
+     * @param account
+     * @return HashMap
+     */
     @PostMapping("/create-account")
     public HashMap<String,Object> createAccount(@RequestBody Account account) {
         
@@ -72,7 +82,8 @@ public class AccountController {
         newAccount.setAccountName(account.getAccountName());
         
         Account response = accountRepository.save(account);
-        if(response.getAccountNumber() > 1){
+        //Check if account has been added successfully
+        if(response.getAccountNumber() > 0){
             map.put("code", ResponseSettings.APPROVED);
             map.put("message", ResponseSettings.SUCCESS_MESSAGE);
             map.put("account", response);
@@ -84,6 +95,12 @@ public class AccountController {
         return map;
     }
     
+    /**
+     * This method load account detail and list of transactions for the given account number
+     * 
+     * @param accountNumber
+     * @return HashMap
+     */
     @GetMapping("/{accountNumber}")
     public HashMap<String,Object> getCustomerAccountDetail(@PathVariable(value = "accountNumber") Long accountNumber) {
         Account account = accountRepository.findById(accountNumber)
@@ -99,21 +116,41 @@ public class AccountController {
         return map;
     }
     
-    @PutMapping("/update-account/{id}")
-    public Account updateAccountDetails(@PathVariable(value = "accountNumber") Long accountNumber, @Valid @RequestBody Account accountDetail) {
+    /**
+     * This method accept accountName as from request body and and edit account name of account number accordingly
+     * @param accountNumber
+     * @param requestBody
+     * @return HashMap
+     */
+    @PutMapping("/update-account/{accountNumber}")
+    public HashMap<String,Object> updateAccountDetails(@PathVariable(value = "accountNumber") Long accountNumber, @RequestBody Map<String, String> requestBody) {
+        HashMap<String,Object> map = new HashMap<>();
+        String accountName = requestBody.get("accountName");
         Account customerAccount = accountRepository.findById(accountNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", accountNumber));
-        customerAccount.setAccountName(accountDetail.getAccountName());
+        customerAccount.setAccountName(accountName);
         
-        return accountRepository.save(customerAccount);
+        accountRepository.save(customerAccount);
+        map.put("code",ResponseSettings.APPROVED);
+        map.put("message",ResponseSettings.SUCCESS_MESSAGE);
+        map.put("account",customerAccount);
+        
+        return map;
     }
     
+    /**
+     * This method is used to credit account. It expect amount from request body and accountNumber to be credited
+     * 
+     * @param accountNumber
+     * @param requestBody
+     * @return HashMap
+     */
     @PutMapping("/account-deposit/{accountNumber}")
-    public HashMap<String,Object> creditAccount(@PathVariable(value = "accountNumber") Long accountNumber, @RequestBody Map<String, Double> body) {
+    public HashMap<String,Object> creditAccount(@PathVariable(value = "accountNumber") Long accountNumber, @RequestBody Map<String, Double> requestBody) {
         
         HashMap<String,Object> map = new HashMap<>();
         
-        double amount = body.get("amount");
+        double amount = requestBody.get("amount");
         Account customerAccount = accountRepository.findById(accountNumber).orElseThrow(() -> new ResourceNotFoundException("Account", "accountNumber", accountNumber));
         customerAccount.setAccountBalance(customerAccount.getAccountBalance() + amount);
         
@@ -123,25 +160,28 @@ public class AccountController {
         processTransaction(accountNumber, amount, transactionDescription, transactionType);
         
         Account account =  accountRepository.save(customerAccount);
-        if(account.getAccountNumber()> 0){
-            map.put("code",ResponseSettings.APPROVED);
-            map.put("message",ResponseSettings.SUCCESS_MESSAGE);
-        }else{
-            map.put("code",ResponseSettings.FAILED);
-            map.put("message",ResponseSettings.FAILED_MESSAGE);
-        }
+        map.put("code",ResponseSettings.APPROVED);
+        map.put("message",ResponseSettings.SUCCESS_MESSAGE);
             
         return map;
     }
     
+    /**
+     * This method is used to transfer money from one account to another. If source account currency is different from
+     * destination account currency, a call to third party API is done for currency exchange rate conversion
+     * 
+     * @param sourceAccountNumber
+     * @param requestBody
+     * @return HashMap
+     */
     @PutMapping("/transfer/{sourceAccount}")
     public HashMap<String,Object> transfer(@PathVariable(value = "sourceAccount") Long sourceAccountNumber,
-            @RequestBody Map<String, String> args) { 
+            @RequestBody Map<String, String> requestBody) { 
         
         HashMap<String,Object> map = new HashMap<>();
                 
-        Double amount = Double.parseDouble(args.get("amount"));
-        Long destinationAccountNumber = Long.parseLong(args.get("destinationAccount"));
+        Double amount = Double.parseDouble(requestBody.get("amount"));
+        Long destinationAccountNumber = Long.parseLong(requestBody.get("destinationAccount"));
         
         //Very source and destination account exist or throw resource not found exception
         Account sourceAccount = accountRepository.findById(sourceAccountNumber).orElseThrow(() -> new ResourceNotFoundException("Account", "Source accountNumber", sourceAccountNumber));
@@ -191,14 +231,14 @@ public class AccountController {
             //Add to source account transaction hisotry
             String transactionDescription = "Transfer between customers. To "+destinationAccount.getAccountName();
             String transactionType = "DEBIT";
-            processTransaction(sourceAccountNumber, Double.parseDouble(args.get("amount")), transactionDescription, transactionType);
+            processTransaction(sourceAccountNumber, Double.parseDouble(requestBody.get("amount")), transactionDescription, transactionType);
             
             accountRepository.save(sourceAccount);
             accountRepository.save(destinationAccount);
             
             map.put("code",ResponseSettings.APPROVED);
             map.put("message",ResponseSettings.SUCCESS_MESSAGE);
-            map.put("USD_to_EUR_rate",getUSDRate());
+            map.put("USD_to_EUR_rate",USD);
         }else{
             map.put("code",ResponseSettings.INSUFFICIENT_FUND);
             map.put("message",ResponseSettings.INSUFFICIENT_FUND_MESSAGE);
@@ -207,6 +247,13 @@ public class AccountController {
         return map;
     }
             
+    /**
+     * This method is used to delete account from the system
+     * It accepts account number
+     * 
+     * @param accountNumber
+     * @return HashMap
+     */
     @DeleteMapping("/delete-account/{accountNumber}")
     public HashMap<String,Object> deleteAccount(@PathVariable(value = "accountNumber") Long accountNumber) { 
         

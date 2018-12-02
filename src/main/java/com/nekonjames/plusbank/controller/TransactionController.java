@@ -44,7 +44,11 @@ public class TransactionController {
     @Autowired
     private TransactionRepository transactionRepository;
     
-    @GetMapping("/all-transactions")
+    /**
+     * This method returns all transactions in the system
+     * @return HashMap
+     */
+    @GetMapping("/transactions")
     public HashMap<String,Object> listAllTransactions() {
         
         HashMap<String,Object> map = new HashMap<>();
@@ -57,6 +61,12 @@ public class TransactionController {
         return map;
     }    
     
+    /**
+     * This method returns all transaction of a particular account
+     * 
+     * @param accountNumber
+     * @return HashMap
+     */
     @GetMapping("/account")
     public HashMap<String,Object> getAccountTransactions(@RequestParam(value = "accountNumber") Long accountNumber) {
         HashMap<String,Object> map = new HashMap<>();
@@ -69,7 +79,13 @@ public class TransactionController {
         return map;
     }   
     
-    
+    /**
+     * This method loads all transaction based on supplied start and end date and order the result in descending order of date
+     * 
+     * @param sDate
+     * @param eDate
+     * @return HashMap
+     */
     @GetMapping("/all-by-date")
     public HashMap<String,Object> getAllTransactionByDate(@RequestParam(value = "startDate") String sDate,
             @RequestParam(value = "endDate") String eDate) {
@@ -93,6 +109,14 @@ public class TransactionController {
         return map;
     }
     
+    /**
+     * This method loads all transaction of a particular account within start and end date.
+     * The result is sorted in descending order of transaction date
+     * @param accountNumber
+     * @param sDate
+     * @param eDate
+     * @return HashMap
+     */
     @GetMapping("/account/all-by-date")
     public HashMap<String,Object> getAccountTransactionByDate(@RequestParam(value = "accountNumber") Long accountNumber, 
             @RequestParam(value = "startDate") String sDate, @RequestParam(value = "endDate") String eDate) {
