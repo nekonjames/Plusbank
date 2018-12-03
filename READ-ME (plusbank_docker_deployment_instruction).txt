@@ -1,0 +1,40 @@
+HOW TO SETUP DOCKER
+
+
+
+1. RUN MYSQL DOCKER CONTAINER
+
+docker run -d -p 2021:3306 --name plusbank-mysql-container -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=db_plusbank -e MYSQL_USER=rootuser -e MYSQL_PASSWORD=root123 mysql:latest
+
+
+2. START MYSQL CONTAINER
+
+docker start plusbank-mysql-container
+
+
+3. BUILD Dockerfile from project directory
+
+docker build -f Dockerfile -t plusbank-app-docker .
+
+
+4. RUN DOCKER APP AND LINK TO MYSQL CONTAINER
+
+docker run -t --name plusbank-app-docker-container --link plusbank-mysql-container:mysql -p 8088:8080 plusbank-app-docker
+
+
+5. START APP CONTAINER
+
+docker start plusbank-app-docker-container
+
+
+6. VERIFY APP CONTAINER IS LINKED TO MYSQL CONTAINER PROPERLY
+
+docker exec -it plusbank-app-docker-container bash
+
+cat /etc/hosts
+
+7. RUN APP
+
+http://localhost:8088
+
+Check postman documentation on working with this api
